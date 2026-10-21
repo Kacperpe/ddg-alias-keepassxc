@@ -1,0 +1,36 @@
+{
+  "manifest_version": 3,
+  "name": "DDG Alias + KeePassXC",
+  "version": "2.0.0",
+  "description": "Alias @duck.com i silne hasło jednym kliknięciem, automatyczny zapis loginu i hasła do KeePassXC.",
+  "permissions": [
+    "storage",
+    "contextMenus",
+    "clipboardWrite",
+    "nativeMessaging"
+  ],
+  "host_permissions": [
+    "https://quack.duckduckgo.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "all_frames": true,
+      "run_at": "document_idle"
+    }
+  ],
+  "options_page": "options.html",
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "DDG Alias"
+  },
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAliDsgsaFHd0qyqSQ+p4ZYlp4U8SMQO2HJRtchQUrKc3iZbq0zQdM8UU7DkXvouF32bzGY1LOvbhYppMYqqkxgj5rIRtM1lU/YE5HY1TO66Os1AHSZqpBkZZERbBksO1DxRJPwEujcQKczmjOpEXLlLBTAhQbr8jD2dVeR4JlKP7Zfhtfrnq12QE99CkGJfcr1g79zIvTnzpZ/lTxUbMJw16vdHy1CwdkqFFf+g7U23gMkue8KEcGxukEPoLbyRm5OiM/jyc+49HxXO7AjEVr8XpMe65d+lIDe8WxXuR9tXkAsh9checoEeW0Yixs7BmTqTpVdVJXWtFPDyKEI/vf3QIDAQAB"
+}

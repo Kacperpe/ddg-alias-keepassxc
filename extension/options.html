@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<title>DDG Alias – opcje</title>
+<style>
+  body { font: 14px system-ui, sans-serif; max-width: 640px; margin: 24px auto; padding: 0 16px; }
+  input[type=password], input[type=text] { width: 100%; padding: 8px; box-sizing: border-box; font-family: monospace; }
+  input[type=number] { width: 80px; padding: 4px; }
+  label { display: block; margin: 8px 0; }
+  button { margin-top: 8px; padding: 6px 14px; cursor: pointer; }
+  #status, #status2 { margin-left: 8px; }
+  table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 13px; }
+  td, th { border-bottom: 1px solid #ddd; padding: 4px; text-align: left; }
+  ol li { margin-bottom: 4px; }
+</style>
+</head>
+<body>
+  <h2>DDG Alias + KeePassXC</h2>
+
+  <h3>Token DuckDuckGo</h3>
+  <ol>
+    <li>Wejdź na <b>duckduckgo.com/email</b> i zaloguj się.</li>
+    <li>Otwórz DevTools (F12) → zakładka <b>Network</b>.</li>
+    <li>Kliknij „Generate Private Duck Address”.</li>
+    <li>Znajdź żądanie <code>addresses</code> i skopiuj wartość nagłówka <code>Authorization</code> bez słowa „Bearer”.</li>
+  </ol>
+  <input id="token" type="password" placeholder="wklej token">
+  <button id="save">Zapisz</button>
+  <button id="test">Testuj (wygeneruje alias)</button>
+  <span id="status"></span>
+
+  <h3>KeePassXC</h3>
+  <p id="kpStatus">Sprawdzam połączenie…</p>
+  <button id="kpConnect">Połącz z KeePassXC</button>
+  <button id="kpCheck">Sprawdź połączenie</button>
+  <label><input type="checkbox" id="kpxcAutoSave"> Automatycznie zapisuj wygenerowany login i hasło w KeePassXC po wysłaniu formularza</label>
+  <label>Grupa w bazie (puste = „KeePassXC-Browser Passwords”): <input type="text" id="kpxcGroup" placeholder="np. Internet/Konta" style="width:260px;font-family:inherit"></label>
+  <p style="font-size:12px;color:#666">Wymaga jednorazowego uruchomienia <code>windows\install.bat</code> z repozytorium. Przy „Połącz” KeePassXC poprosi o nazwę połączenia – wpisz dowolną i kliknij <b>Zapisz i zezwól</b>.</p>
+
+  <h3>Zachowanie</h3>
+  <label><input type="checkbox" id="showOnFocus"> Na formularzach rejestracji otwieraj menu od razu po kliknięciu w pole (jak DuckDuckGo). Ikona w polu jest widoczna zawsze.</label>
+  <label>Długość generowanego hasła: <input type="number" id="pwLength" min="8" max="128"></label>
+  <label><input type="checkbox" id="pwSymbols"> Znaki specjalne w haśle (!@#$…)</label>
+  <button id="saveSettings">Zapisz ustawienia</button><span id="status2"></span>
+
+  <h3>Historia aliasów</h3>
+  <button id="export">Eksport CSV</button>
+  <table><thead><tr><th>Alias</th><th>Strona</th><th>Data</th></tr></thead><tbody id="hist"></tbody></table>
+
+  <script src="options.js"></script>
+</body>
+</html>
