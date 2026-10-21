@@ -3,9 +3,11 @@
 Rozszerzenie do Chrome / Edge / Brave, które działa podobnie jak autouzupełnianie w przeglądarce DuckDuckGo:
 
 - w każdym polu loginu / e-maila i hasła pojawia się ikonka,
-- **jedno kliknięcie** wstawia nowy prywatny alias **@duck.com** (DuckDuckGo Email Protection) w pole e-mail **i** silne, 64-znakowe hasło w pola hasła,
-- konto (login, hasło, adres strony) trafia do **KeePassXC** – w trybie prostym jednym kliknięciem „Nowy”, w trybie pełnym całkiem automatycznie,
-- baza `.kdbx` jest ta sama co w telefonie (Keepass2Android / KeePassDX), więc nowe konta od razu są też w telefonie.
+- **rejestracja**: jedno kliknięcie wstawia nowy prywatny alias **@duck.com** (DuckDuckGo Email Protection) i silne, 64-znakowe hasło, a po wysłaniu formularza konto **samo zapisuje się w KeePassXC**,
+- **logowanie**: na stronie, dla której masz konto w KeePassXC, pod polem loginu pojawia się podpowiedź – klik i jesteś zalogowany,
+- baza `.kdbx` jest ta sama co w telefonie (Keepass2Android / KeePassDX).
+
+Potrzebujesz tylko **KeePassXC** i **tego jednego rozszerzenia** – oficjalny KeePassXC-Browser nie jest potrzebny.
 
 ![Podgląd](docs/podglad.png)
 
@@ -33,39 +35,35 @@ Rozszerzenie do Chrome / Edge / Brave, które działa podobnie jak autouzupełni
 
 ## 2. Instalacja krok po kroku
 
-Całość zajmuje ok. 5 minut. Nie trzeba nic instalować poza rozszerzeniami.
+### 2.1. KeePassXC i adres DuckDuckGo
 
-### 2.1. Adres DuckDuckGo i KeePassXC
+1. Zainstaluj [KeePassXC](https://keepassxc.org) i otwórz swoją bazę `.kdbx` (np. z *Google Drive na komputer*, żeby była wspólna z telefonem).
+2. W KeePassXC: **Narzędzia → Ustawienia → Integracja z przeglądarką** → zaznacz **Włącz integrację z przeglądarką** → OK.
+3. Nie masz adresu `@duck.com`? Załóż go na **duckduckgo.com/email** (w przeglądarce DuckDuckGo albo z rozszerzeniem *DuckDuckGo Privacy Essentials*).
 
-1. Nie masz adresu `@duck.com`? Wejdź na **duckduckgo.com/email** (w przeglądarce DuckDuckGo albo z rozszerzeniem *DuckDuckGo Privacy Essentials*), wybierz adres i podaj skrzynkę, na którą mają przychodzić maile.
-2. Zainstaluj [KeePassXC](https://keepassxc.org) i otwórz swoją bazę `.kdbx`. Żeby była wspólna z telefonem, trzymaj ją np. na *Google Drive na komputer* i otwieraj ten sam plik w Keepass2Android / KeePassDX.
-3. W KeePassXC: **Narzędzia → Ustawienia → Integracja z przeglądarką** → zaznacz **Włącz integrację** i swoją przeglądarkę → OK.
-4. Zainstaluj oficjalne rozszerzenie **KeePassXC-Browser** ([Chrome](https://chromewebstore.google.com/detail/keepassxc-browser/oboonakemofpalcgghocfoadofidjkkk) · [Edge](https://microsoftedge.microsoft.com/addons/detail/keepassxcbrowser/pdffhmdngciaglkoonimfcmckehcpafo)), kliknij jego ikonę → **Połącz** i zatwierdź w KeePassXC. Ono wypełnia loginy i zapisuje nowe konta.
-
-### 2.2. To rozszerzenie
+### 2.2. Rozszerzenie
 
 1. **[⬇️ Pobierz ZIP](https://github.com/Kacperpe/ddg-alias-keepassxc/archive/refs/heads/main.zip)** i rozpakuj w stałe miejsce, np. `C:\Narzedzia` (w środku będzie folder `ddg-alias-keepassxc-main`). **Nie przenoś później tego folderu.**
-2. Otwórz `chrome://extensions` (w Edge: `edge://extensions`) i włącz **Tryb dewelopera**.
-3. Kliknij **Załaduj rozpakowane** i wskaż folder **`extension`**.
-4. Same otworzą się ustawienia rozszerzenia (później: prawy klik na ikonę → **Opcje**).
+2. W folderze `windows` kliknij dwa razy **`install.bat`**. Nic nie instaluje – jednorazowo pozwala przeglądarce rozmawiać z KeePassXC (wpis w rejestrze tylko dla Twojego konta, bez uprawnień administratora).
+3. Otwórz `chrome://extensions` (w Edge: `edge://extensions`), włącz **Tryb dewelopera**, kliknij **Załaduj rozpakowane** i wskaż folder **`extension`**.
+4. Zamknij wszystkie okna przeglądarki i otwórz ją ponownie. Same otworzą się ustawienia rozszerzenia (później: prawy klik na ikonę → **Opcje**).
 
-### 2.3. Logowanie do DuckDuckGo (w ustawieniach rozszerzenia)
+### 2.3. Ustawienia rozszerzenia – 2 kroki
 
-1. Wpisz swój adres, np. `kacper@duck.com` → **Wyślij kod**.
-2. Na Twoją skrzynkę przyjdzie mail od DuckDuckGo z kodem z kilku słów (np. *apple banana cherry date*).
-3. Wpisz te słowa → **Zaloguj** → zobaczysz ✅ *Zalogowano*. Możesz kliknąć *Wygeneruj testowy adres*.
+1. **DuckDuckGo**: wpisz swój adres, np. `kacper@duck.com` → **Wyślij kod** → wpisz słowa z maila od DuckDuckGo → **Zaloguj**.
+2. **KeePassXC**: kliknij **Połącz z KeePassXC**, w okienku KeePassXC wpisz nazwę (np. `laptop`) → **Zapisz i zezwól**.
 
-Gotowe. W kroku 2 ustawień zobaczysz ✅ *Tryb prosty* – po rejestracji KeePassXC-Browser zapyta o zapis, kliknij **Nowy**.
+Oba kroki z zielonym ✓ = gotowe.
 
-### 2.4. (Opcjonalnie) Tryb pełny – zapis bez klikania „Nowy”
+> **Okienko „Dostęp do danych” w KeePassXC** – przy pierwszym podpowiadaniu konta dla danej strony KeePassXC pyta, czy pozwolić. Zaznacz **Zapamiętaj** i **Zezwól**. Jeśli nie chcesz tych pytań wcale: KeePassXC → *Ustawienia → Integracja z przeglądarką → Zaawansowane* → **Nigdy nie pytaj przed dostępem do danych**.
 
-Chrome pozwala rozszerzeniu rozmawiać z programem na komputerze tylko przez wpis w rejestrze Windows. KeePassXC robi taki wpis wyłącznie dla swojego oficjalnego rozszerzenia, dlatego tutaj trzeba go dodać raz:
+<details>
+<summary>Nie chcę uruchamiać install.bat</summary>
 
-1. W pobranym folderze otwórz `windows` i kliknij dwa razy **`install.bat`** (bez uprawnień administratora, tylko dla Twojego konta).
-2. Zamknij wszystkie okna przeglądarki i otwórz ją ponownie.
-3. W ustawieniach rozszerzenia kliknij **Połącz z KeePassXC**, w okienku KeePassXC wpisz nazwę (np. `laptop`) → **Zapisz i zezwól**.
+Zamiast tego zainstaluj oficjalny **KeePassXC-Browser** ([Chrome](https://chromewebstore.google.com/detail/keepassxc-browser/oboonakemofpalcgghocfoadofidjkkk) · [Edge](https://microsoftedge.microsoft.com/addons/detail/keepassxcbrowser/pdffhmdngciaglkoonimfcmckehcpafo)). Wtedy on podpowiada loginy i pyta o zapis nowych kont (klik „Nowy”), a to rozszerzenie tylko wstawia aliasy i hasła.
 
-Od teraz nowe konta zapisują się same – zobaczysz w rogu **„Zapisano w KeePassXC ✔”**. W ustawieniach KeePassXC-Browser możesz wtedy wyłączyć pytanie o zapis nowych danych, żeby nie dublowało wpisów.
+Dlaczego bez `install.bat` nie da się inaczej: Chrome pozwala rozszerzeniu rozmawiać z programem na komputerze tylko przez wpis w rejestrze Windows, a KeePassXC tworzy taki wpis wyłącznie dla swojego oficjalnego rozszerzenia (opcja własnego ID rozszerzenia istnieje tylko w wersjach deweloperskich KeePassXC).
+</details>
 
 ## 3. Jak używać
 
@@ -75,8 +73,7 @@ Od teraz nowe konta zapisują się same – zobaczysz w rogu **„Zapisano w Kee
 2. Wybierz **„Adres Duck + silne hasło”** (lub naciśnij Enter).
    → w polu e-mail pojawia się nowy alias, a w polach hasła i powtórzenia to samo 64-znakowe hasło.
 3. Kliknij *Zarejestruj* / *Załóż konto*.
-   → tryb prosty: KeePassXC-Browser pyta o zapis → **Nowy**.
-   → tryb pełny: w rogu pojawia się **„Zapisano w KeePassXC ✔”**. Wpis trafia do grupy *KeePassXC-Browser Passwords* (lub Twojej z ustawień).
+   → w rogu pojawia się **„Zapisano w KeePassXC ✔”**. Wpis trafia do grupy *KeePassXC-Browser Passwords* (lub Twojej z ustawień).
 
 ### Inne opcje
 
@@ -92,14 +89,20 @@ Od teraz nowe konta zapisują się same – zobaczysz w rogu **„Zapisano w Kee
 
 ### Logowanie na istniejące konta
 
-To robi **KeePassXC-Browser** (osobne, oficjalne rozszerzenie KeePassXC) – zostaw je zainstalowane do wypełniania loginów. Żeby nie dostawać podwójnego pytania o zapis, w jego ustawieniach możesz wyłączyć zapisywanie nowych danych logowania – nowe konta zapisuje już DDG Alias.
+1. Wejdź na stronę logowania i kliknij w pole loginu.
+2. Jeśli KeePassXC ma konto dla tej strony (pasuje pole **URL** wpisu), pod polem pojawi się sekcja **Zapisane w KeePassXC** z Twoimi kontami.
+3. Kliknij konto (albo Enter) → login i hasło się wpiszą, a rozszerzenie od razu kliknie *Zaloguj* (można to wyłączyć w ustawieniach).
+
+Działa też dla kont dodanych w telefonie – wystarczy, że wpis ma wypełniony URL strony. Na logowaniu dwuetapowym (najpierw e-mail, potem hasło) wybierz konto na każdym kroku.
 
 ## 4. Ustawienia
 
 | Opcja | Domyślnie | Opis |
 |---|---|---|
-| Automatyczny zapis w KeePassXC (tryb pełny) | wł. | Zapis po wysłaniu formularza. Wyłączone = tylko przycisk „Zapisz teraz” |
-| Grupa w bazie (tryb pełny) | *KeePassXC-Browser Passwords* | Np. `Internet/Konta`. Grupa musi istnieć w bazie |
+| Podpowiadaj zapisane konta | wł. | Sekcja „Zapisane w KeePassXC” na stronach logowania |
+| Od razu loguj po wybraniu konta | wł. | Rozszerzenie klika *Zaloguj* za Ciebie |
+| Automatyczny zapis nowych kont | wł. | Zapis po wysłaniu formularza. Wyłączone = tylko przycisk „Zapisz teraz” |
+| Grupa w bazie | *KeePassXC-Browser Passwords* | Np. `Internet/Konta`. Grupa musi istnieć w bazie |
 | Menu od razu na rejestracji | wł. | Wyłączone = menu tylko po kliknięciu ikonki |
 | Długość hasła | 64 | 8–128. Jeśli pole na stronie ma limit (`maxlength`), hasło dopasuje się samo |
 | Znaki specjalne | wł. | Pełny zestaw 32 znaków specjalnych ASCII (np. `! " # $ % & * < > ? @ [ ] ^ ~`) |
@@ -109,7 +112,8 @@ To robi **KeePassXC-Browser** (osobne, oficjalne rozszerzenie KeePassXC) – zos
 
 | Problem | Rozwiązanie |
 |---|---|
-| Chcę zapis bez klikania „Nowy” | Tryb pełny – punkt 2.4 |
+| Ustawienia: *Został jeden dwuklik…* | Uruchom `windows\install.bat` i zrestartuj przeglądarkę |
+| Nie pojawia się podpowiedź konta | Sprawdź, czy wpis w KeePassXC ma URL tej strony i czy baza jest odblokowana. Po aktualizacji rozszerzenia kliknij ⟳ w `chrome://extensions` |
 | ❌ *KeePassXC nie odpowiada* | Uruchom KeePassXC i włącz *Integrację z przeglądarką* w ustawieniach |
 | ❌ *Baza KeePassXC jest zablokowana* | Odblokuj bazę (KeePassXC sam pokaże okno odblokowania) |
 | ❌ *Ta baza nie jest połączona* | Opcje → *Połącz z KeePassXC* (np. po otwarciu innej bazy) |
@@ -137,7 +141,7 @@ To robi **KeePassXC-Browser** (osobne, oficjalne rozszerzenie KeePassXC) – zos
 - **Logowanie DDG**: `GET /api/auth/loginlink?user=` (wysyła kod na maila) → `GET /api/auth/login?user=&otp=` (jednorazowy token) → `GET /api/email/dashboard` (stały `access_token`). Ten sam przebieg co w aplikacjach DuckDuckGo.
 - **Aliasy**: `POST https://quack.duckduckgo.com/api/email/addresses` z nagłówkiem `Authorization: Bearer <token>` – to samo API, którego używa DuckDuckGo i Bitwarden. Nieoficjalne, może się kiedyś zmienić.
 - **Hasła**: generowane lokalnie przez `crypto.getRandomValues` (bez przesunięcia modulo), co najmniej jeden znak z każdej grupy, wymieszane algorytmem Fisher–Yates.
-- **KeePassXC (tryb pełny)**: rozszerzenie mówi tym samym protokołem co oficjalny KeePassXC-Browser (`change-public-keys`, `associate`, `test-associate`, `get-databasehash`, `set-login`), szyfrowanym `crypto_box` (Curve25519 + XSalsa20-Poly1305, biblioteka [tweetnacl](https://github.com/dchest/tweetnacl-js)). Wiadomości idą przez `keepassxc-proxy.exe` dołączony do KeePassXC. `install.bat` rejestruje go pod własną nazwą `com.kacperpe.ddg_alias`, z dostępem tylko dla ID tego rozszerzenia.
+- **KeePassXC**: rozszerzenie mówi tym samym protokołem co oficjalny KeePassXC-Browser (`change-public-keys`, `associate`, `test-associate`, `get-databasehash`, `get-logins`, `set-login`), szyfrowanym `crypto_box` (Curve25519 + XSalsa20-Poly1305, biblioteka [tweetnacl](https://github.com/dchest/tweetnacl-js)). Wiadomości idą przez `keepassxc-proxy.exe` dołączony do KeePassXC. `install.bat` rejestruje go pod własną nazwą `com.kacperpe.ddg_alias`, z dostępem tylko dla ID tego rozszerzenia.
 - **Wykrywanie formularzy**: pola `type=email`, nazwy / placeholdery typu *email, login, user, konto*, pierwsze pole tekstowe w formularzu z hasłem. Rejestracja = dwa pola hasła, `autocomplete="new-password"` albo słowa *rejestracja / sign up / załóż konto* w formularzu lub adresie.
 - **Zapis**: po wygenerowaniu danych rozszerzenie czeka na wysłanie formularza (submit, kliknięcie przycisku typu *Zarejestruj / Dalej*, Enter lub opuszczenie strony) i wysyła do KeePassXC aktualny login, hasło i adres strony.
 
@@ -163,12 +167,12 @@ docs/podglad.png
 - Token DDG i klucz połączenia z KeePassXC są w `chrome.storage.local` przeglądarki (lokalnie, nie są synchronizowane).
 - Wygenerowane hasła **nie są nigdzie zapisywane** poza polem formularza i Twoją bazą KeePassXC. Historia przechowuje tylko aliasy i domeny.
 - Komunikacja z KeePassXC jest szyfrowana, a każda baza musi zostać ręcznie zatwierdzona w KeePassXC. Połączenie możesz w każdej chwili usunąć: KeePassXC → *Baza danych → Ustawienia bazy → Integracja z przeglądarką*.
-- Rozszerzenie nie odczytuje haseł z bazy – tylko dodaje nowe wpisy.
+- Hasła z bazy rozszerzenie pobiera tylko dla bieżącej strony, w chwili gdy klikniesz pole logowania (tak samo jak KeePassXC-Browser), i nigdzie ich nie zapisuje.
 - Mostek jest zarejestrowany tylko dla Twojego użytkownika Windows (`HKCU`).
 
 ## 8. Odinstalowanie
 
-1. (jeśli używałeś trybu pełnego) `windows\uninstall.bat` – usuwa wpisy w rejestrze i manifest mostka.
+1. `windows\uninstall.bat` – usuwa wpisy w rejestrze i manifest mostka.
 2. `chrome://extensions` → *Usuń* przy DDG Alias + KeePassXC.
 3. (opcjonalnie) KeePassXC → *Baza danych → Ustawienia bazy → Integracja z przeglądarką* → usuń klucz połączenia.
 

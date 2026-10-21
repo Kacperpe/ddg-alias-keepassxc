@@ -102,19 +102,17 @@
 
     <div id="kpNoBridge" class="hidden">
       <ol class="steps">
-        <li>Zainstaluj oficjalne rozszerzenie <b>KeePassXC-Browser</b>:
-          <a href="https://chromewebstore.google.com/detail/keepassxc-browser/oboonakemofpalcgghocfoadofidjkkk" target="_blank">Chrome</a> ·
-          <a href="https://microsoftedge.microsoft.com/addons/detail/keepassxcbrowser/pdffhmdngciaglkoonimfcmckehcpafo" target="_blank">Edge</a></li>
-        <li>W KeePassXC: <b>Narzędzia → Ustawienia → Integracja z przeglądarką</b> → zaznacz <b>Włącz integrację</b> i swoją przeglądarkę.</li>
-        <li>Kliknij ikonę KeePassXC-Browser → <b>Połącz</b> i zatwierdź w KeePassXC.</li>
+        <li>W pobranym folderze otwórz <code>windows</code> i kliknij dwa razy <b>install.bat</b>.
+          <div class="hint">Nic nie instaluje – jednorazowo pozwala przeglądarce rozmawiać z KeePassXC.</div></li>
+        <li>Zamknij wszystkie okna przeglądarki i otwórz ją ponownie.</li>
+        <li>Wróć tutaj – ta strona sama sprawdzi połączenie.</li>
       </ol>
-      <p class="hint">Gotowe – po rejestracji KeePassXC-Browser zapyta o zapis, kliknij <b>Nowy</b>. Ten sam KeePassXC-Browser wypełnia potem loginy.</p>
       <details>
-        <summary>Opcjonalnie: zapis całkiem bez klikania „Nowy”</summary>
-        <ol class="steps">
-          <li>W pobranym folderze otwórz <code>windows</code> i kliknij dwa razy <b>install.bat</b> (jednorazowo).</li>
-          <li>Zamknij wszystkie okna przeglądarki i otwórz ją ponownie, potem wróć tutaj.</li>
-        </ol>
+        <summary>Nie chcę uruchamiać install.bat</summary>
+        <p class="hint">Możesz zamiast tego zainstalować oficjalne rozszerzenie KeePassXC-Browser
+          (<a href="https://chromewebstore.google.com/detail/keepassxc-browser/oboonakemofpalcgghocfoadofidjkkk" target="_blank">Chrome</a> ·
+          <a href="https://microsoftedge.microsoft.com/addons/detail/keepassxcbrowser/pdffhmdngciaglkoonimfcmckehcpafo" target="_blank">Edge</a>).
+          Wtedy ono podpowiada loginy i pyta o zapis nowych kont (klik „Nowy”), a to rozszerzenie tylko wstawia aliasy i hasła.</p>
       </details>
     </div>
     <div id="kpNotRunning" class="hidden">
@@ -135,6 +133,8 @@
   <!-- USTAWIENIA -->
   <section class="card">
     <div class="head"><h2>Ustawienia</h2><span class="saved hidden" id="savedMark">Zapisano ✓</span></div>
+    <label class="check"><input type="checkbox" id="suggestLogins"><span>Podpowiadaj zapisane konta z KeePassXC na stronach logowania</span></label>
+    <label class="check"><input type="checkbox" id="autoSubmit"><span>Po wybraniu konta od razu loguj (kliknij „Zaloguj” za mnie)</span></label>
     <label class="check"><input type="checkbox" id="kpxcAutoSave"><span>Automatycznie zapisuj nowe konto (login, hasło, strona) w KeePassXC po wysłaniu formularza</span></label>
     <label class="check"><input type="checkbox" id="showOnFocus"><span>Na stronach rejestracji pokazuj menu od razu po kliknięciu w pole</span></label>
     <label class="check"><input type="checkbox" id="pwSymbols"><span>Znaki specjalne w haśle (!@#$…)</span></label>

@@ -75,9 +75,8 @@ async function kpRefresh() {
     setStatus('kpStatus', 'KeePassXC działa – zostało tylko połączyć go z rozszerzeniem.', 'warn');
     show('kpNeedAssoc', true);
   } else if (/mostka|install\.bat/i.test(r.error)) {
-    setStatus('kpStatus', '✅ Tryb prosty: nowe konta zapisuje KeePassXC-Browser (jedno kliknięcie „Nowy”).', 'ok');
+    setStatus('kpStatus', 'Został jeden dwuklik, żeby przeglądarka mogła rozmawiać z KeePassXC:', 'warn');
     show('kpNoBridge', true);
-    done = true;
   } else if (/zablokowana/i.test(r.error)) {
     setStatus('kpStatus', '🔒 Odblokuj swoją bazę w KeePassXC.', 'warn');
   } else {
@@ -105,8 +104,10 @@ let kpTimer = setInterval(async () => {
 
 // ---------- Ustawienia ----------
 async function loadSettings() {
-  const s = await chrome.storage.local.get(['showOnFocus', 'pwLength', 'pwSymbols', 'kpxcAutoSave', 'kpxcGroup']);
+  const s = await chrome.storage.local.get(['showOnFocus', 'pwLength', 'pwSymbols', 'kpxcAutoSave', 'kpxcGroup', 'autoSubmit', 'suggestLogins']);
   $('kpxcAutoSave').checked = s.kpxcAutoSave !== false;
+  $('autoSubmit').checked = s.autoSubmit !== false;
+  $('suggestLogins').checked = s.suggestLogins !== false;
   $('showOnFocus').checked = s.showOnFocus !== false;
   $('pwSymbols').checked = s.pwSymbols !== false;
   $('pwLength').value = s.pwLength || 64;
@@ -119,6 +120,8 @@ async function saveSettings() {
   $('pwLength').value = len;
   await chrome.storage.local.set({
     kpxcAutoSave: $('kpxcAutoSave').checked,
+    autoSubmit: $('autoSubmit').checked,
+    suggestLogins: $('suggestLogins').checked,
     showOnFocus: $('showOnFocus').checked,
     pwSymbols: $('pwSymbols').checked,
     pwLength: len,
@@ -128,7 +131,7 @@ async function saveSettings() {
   clearTimeout(markTimer);
   markTimer = setTimeout(() => show('savedMark', false), 1500);
 }
-['kpxcAutoSave', 'showOnFocus', 'pwSymbols', 'pwLength', 'kpxcGroup'].forEach(id => { $(id).onchange = saveSettings; });
+['kpxcAutoSave', 'autoSubmit', 'suggestLogins', 'showOnFocus', 'pwSymbols', 'pwLength', 'kpxcGroup'].forEach(id => { $(id).onchange = saveSettings; });
 
 // ---------- Historia ----------
 async function loadHistory() {

@@ -127,6 +127,23 @@ const kpxc = {
     return { name: a.id };
   }),
 
+  // zapisane konta dla strony (dopasowanie po polu URL wpisu – robi to KeePassXC)
+  logins: ({ url, submitUrl }) => withSession(async s => {
+    const { assoc } = await getAssocFor(s);
+    try {
+      const r = await s.getLogins({ assoc, url, submitUrl });
+      return {
+        entries: (r.entries || []).map(e => ({
+          login: e.login, password: e.password, name: e.name, uuid: e.uuid,
+          skipAutoSubmit: e.skipAutoSubmit === 'true'
+        }))
+      };
+    } catch (e) {
+      if (e.code === 15) return { entries: [] };
+      throw e;
+    }
+  }),
+
   save: ({ url, submitUrl, login, password }) => withSession(async s => {
     const { assoc } = await getAssocFor(s);
     const { kpxcGroup = '' } = await chrome.storage.local.get('kpxcGroup');
@@ -145,6 +162,12 @@ const handlers = {
   ddgLogin: msg => ddgLogin(msg.user, msg.code),
   ddgLogout: () => chrome.storage.local.remove('ddgToken').then(() => ({})),
   kpxcStatus: () => kpxc.status(),
+  getLogins: async (msg, sender) => {
+    const { kpxcBridge, kpxcAssoc } = await chrome.storage.local.get(['kpxcBridge', 'kpxcAssoc']);
+    if (kpxcBridge === false || !kpxcAssoc || !Object.keys(kpxcAssoc).length) return { entries: [], unavailable: true };
+    const url = (sender.tab && sender.tab.url) || msg.url;
+    return kpxc.logins({ url, submitUrl: msg.submitUrl || url });
+  },
   kpxcAssociate: () => kpxc.associate(),
   saveLogin: async msg => {
     const { kpxcAutoSave = true, kpxcBridge } = await chrome.storage.local.get(['kpxcAutoSave', 'kpxcBridge']);
@@ -167,6 +190,9 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     });
   return true;
 });
+
+// po starcie przeglądarki sprawdź mostek od nowa (np. po uruchomieniu install.bat)
+chrome.runtime.onStartup.addListener(() => chrome.storage.local.remove('kpxcBridge'));
 
 // ---------- menu kontekstowe + kreator po instalacji ----------
 chrome.runtime.onInstalled.addListener(details => {

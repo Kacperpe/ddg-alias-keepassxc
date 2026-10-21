@@ -3,7 +3,7 @@
   window.__ddgAliasLoaded = true;
 
   // ---------- ustawienia ----------
-  const settings = { showOnFocus: true, pwLength: 64, pwSymbols: true };
+  const settings = { showOnFocus: true, pwLength: 64, pwSymbols: true, autoSubmit: true, suggestLogins: true };
   chrome.storage.local.get(Object.keys(settings)).then(s => {
     for (const k in s) if (s[k] !== undefined) settings[k] = s[k];
   });
@@ -103,6 +103,8 @@
   const SVG_BOTH = `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#DE5833"/><path d="M12.6 10.6a2.4 2.4 0 1 1-.8-1.7v1.7c0 .8.4 1.2 1 1.2.8 0 1.2-.7 1.2-1.8a3.9 3.9 0 1 0-1.8 3.3" fill="none" stroke="#fff" stroke-width="1.4" stroke-linecap="round" transform="translate(-2.5 -1)"/><g fill="none" stroke="#fff" stroke-width="1.4" stroke-linecap="round"><circle cx="14.5" cy="15.5" r="1.6"/><path d="M16.1 15.5h3.4M18.4 15.5v1.3"/></g></svg>`;
   const SVG_REFRESH = `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#8a8a8a"/><g fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M16.8 10.2A5 5 0 1 0 17 13.4"/><path d="M17.2 6.8v3.6h-3.6"/></g></svg>`;
 
+  const SVG_USER = `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#2f7d4f"/><g fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="9.3" r="3.1"/><path d="M6.6 18.2c.9-2.7 3-4 5.4-4s4.5 1.3 5.4 4"/></g></svg>`;
+
   // ---------- UI w Shadow DOM ----------
   const host = document.createElement('ddg-alias-ui');
   host.style.cssText = 'all:initial;position:fixed;top:0;left:0;width:0;height:0;z-index:2147483646;';
@@ -136,6 +138,9 @@
     .busy { opacity: .6; pointer-events: none; }
     .err { color: #c62828; }
     .sep { height: 1px; background: #ececec; margin: 4px 8px; }
+    .hdr { padding: 6px 12px 2px; color: #8a8a8a; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+    .info { padding: 8px 12px; color: #6b6b6b; font-size: 12px; }
+    .info.err { color: #c62828; }
     .foot { padding: 6px 12px 4px; color: #8a8a8a; font-size: 11px; }
     .toast {
       position: fixed; right: 16px; bottom: 16px; max-width: 380px; display: none;
@@ -246,7 +251,84 @@
     menuItems.forEach((m, k) => m.classList.toggle('sel', k === sel));
   }
 
-  function openMenu(el) {
+  // ---------- zapisane konta z KeePassXC ----------
+  // stan dla bieżącego adresu strony: idle | loading | done | error | off
+  let logins = { url: null, status: 'idle', entries: [], error: '' };
+
+  function fetchLogins() {
+    if (!settings.suggestLogins) return Promise.resolve(logins);
+    const url = location.href.split('#')[0];
+    if (logins.url === url && logins.status !== 'idle') return logins.promise || Promise.resolve(logins);
+    logins = { url, status: 'loading', entries: [], error: '' };
+    logins.promise = chrome.runtime.sendMessage({ type: 'getLogins', url: location.href })
+      .then(r => {
+        if (!r || !r.ok) { logins.status = 'error'; logins.error = r ? r.error : 'brak odpowiedzi'; }
+        else if (r.unavailable) logins.status = 'off';
+        else { logins.status = 'done'; logins.entries = r.entries || []; }
+      })
+      .catch(e => { logins.status = 'error'; logins.error = e.message; })
+      .then(() => {
+        if (openFor) openMenu(openFor, true); // odśwież otwarte menu
+        return logins;
+      });
+    return logins.promise;
+  }
+
+  function addLoginSection(el) {
+    const st = logins.status;
+    if (st === 'off' || st === 'idle' || !settings.suggestLogins) return false;
+    if (st === 'done' && !logins.entries.length) return false;
+    const h = document.createElement('div'); h.className = 'hdr'; h.textContent = 'Zapisane w KeePassXC';
+    menu.appendChild(h);
+    if (st === 'loading') {
+      const i = document.createElement('div'); i.className = 'info'; i.textContent = 'Szukam kont dla tej strony…';
+      menu.appendChild(i);
+    } else if (st === 'error') {
+      const i = document.createElement('div'); i.className = 'info err'; i.textContent = logins.error;
+      menu.appendChild(i);
+    } else {
+      for (const entry of logins.entries) {
+        addItem({ svg: SVG_USER, title: entry.login || '(bez loginu)',
+          sub: (entry.name || '') + (settings.autoSubmit && !entry.skipAutoSubmit ? ' · wpisze i zaloguje' : ''),
+          onPick: () => fillLogin(entry, el) });
+      }
+    }
+    return true;
+  }
+
+  function btnVisible(b) { const r = b.getBoundingClientRect(); return r.width > 0 && r.height > 0; }
+
+  function submitForm(root, field) {
+    const scope = root !== document ? root : (field.closest('form') || document);
+    const btns = [...scope.querySelectorAll('button, input[type=submit], [role=button]')].filter(btnVisible);
+    const btn = btns.find(b => b.type === 'submit') || btns.find(b => SUBMIT_TEXT.test(b.innerText || b.value || ''));
+    if (btn) btn.click();
+    else if (scope.requestSubmit) scope.requestSubmit();
+  }
+
+  function fillLogin(entry, el) {
+    const root = rootOf(el);
+    const kind = fieldKind(el);
+    const userEl = kind === 'email' ? el
+      : [...root.querySelectorAll('input')].find(i => i !== el && fieldKind(i) === 'email' && visible(i));
+    const pwEl = kind === 'password' ? el : passwordsIn(root)[0];
+    filling = true;
+    try {
+      if (userEl && entry.login) setValue(userEl, entry.login);
+      if (pwEl && entry.password) setValue(pwEl, entry.password);
+      closeMenu();
+      pending = null; // to istniejące konto – nic nie zapisujemy
+      if (settings.autoSubmit && !entry.skipAutoSubmit && pwEl && pwEl.value) {
+        setTimeout(() => submitForm(root, pwEl), 150);
+      } else {
+        (pwEl && !pwEl.value ? pwEl : (pwEl || userEl || el)).focus({ preventScroll: true });
+      }
+    } finally {
+      setTimeout(() => { filling = false; }, 50);
+    }
+  }
+
+  function openMenu(el, refresh) {
     const kind = (tracked.get(el) || {}).kind || fieldKind(el);
     if (!kind) return;
     mount();
@@ -254,6 +336,11 @@
     menu.innerHTML = '';
     menuItems = [];
     const others = newPwFields(rootOf(el), el).filter(p => p !== el);
+    if (!refresh) fetchLogins();
+    if (addLoginSection(el)) {
+      const h = document.createElement('div'); h.className = 'hdr'; h.textContent = 'Nowe konto';
+      menu.appendChild(h);
+    }
 
     if (kind === 'email') {
       if (others.length) {
@@ -439,8 +526,14 @@
     if (openFor && openFor !== el) closeMenu();
     const t = tracked.get(el);
     if (!t || filling || openFor === el) return;
+    if (!settings.showOnFocus || el.value || dismissed.has(el)) { fetchLogins(); return; }
     // jak w DuckDuckGo: na formularzu rejestracji menu otwiera się samo
-    if (settings.showOnFocus && !el.value && !dismissed.has(el) && isSignup(el)) openMenu(el);
+    if (isSignup(el)) { openMenu(el); return; }
+    // na formularzu logowania: podpowiedź, gdy KeePassXC ma konta dla tej strony
+    fetchLogins().then(l => {
+      if (l.status === 'done' && l.entries.length && document.activeElement === el &&
+          !el.value && !dismissed.has(el) && openFor !== el) openMenu(el);
+    });
   }, true);
 
   document.addEventListener('mousedown', e => {

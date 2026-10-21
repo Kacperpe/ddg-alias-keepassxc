@@ -16,11 +16,13 @@
   const ERRORS = {
     1: 'Baza KeePassXC jest zablokowana – odblokuj ją.',
     6: 'Odrzucono w KeePassXC.',
-    7: 'Nie udało się zapisać klucza w KeePassXC.',
-    8: 'KeePassXC nie rozpoznał klucza – połącz ponownie w opcjach.',
-    11: 'Nie znaleziono pasujących wpisów.',
-    15: 'Brak połączenia z bazą – kliknij „Połącz z KeePassXC” w opcjach rozszerzenia.'
+    7: 'Nie udało się zaszyfrować wiadomości do KeePassXC.',
+    8: 'Połączenie z KeePassXC nie powiodło się – połącz ponownie w ustawieniach rozszerzenia.',
+    10: 'KeePassXC nie rozpoznał klucza – połącz ponownie w ustawieniach rozszerzenia.',
+    11: 'Ta baza nie jest połączona – kliknij „Połącz z KeePassXC” w ustawieniach rozszerzenia.',
+    15: 'Brak zapisanych kont dla tej strony.'
   };
+  const err = (msg, code) => Object.assign(new Error(msg), { code });
 
   class KpxcSession {
     // transport: { send(obj), onMessage(cb), onDisconnect(cb), close() }
@@ -86,13 +88,13 @@
       }, timeout);
       if (!r.message) {
         const code = r.errorCode !== undefined ? +r.errorCode : null;
-        throw new Error(ERRORS[code] || r.error || 'Błąd KeePassXC');
+        throw err(ERRORS[code] || r.error || 'Błąd KeePassXC', code);
       }
       const opened = nacl.box.open(unb64(r.message), unb64(r.nonce), this.hostKey, this.keys.secretKey);
       if (!opened) throw new Error('Nie udało się odszyfrować odpowiedzi KeePassXC');
       const out = JSON.parse(dec.decode(opened));
       if (out.success !== 'true' && out.success !== true) {
-        throw new Error(ERRORS[+out.errorCode] || out.error || 'KeePassXC odrzucił żądanie');
+        throw err(ERRORS[+out.errorCode] || out.error || 'KeePassXC odrzucił żądanie', +out.errorCode);
       }
       return out;
     }
