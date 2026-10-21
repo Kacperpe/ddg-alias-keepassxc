@@ -47,7 +47,7 @@ Rozszerzenie do Chrome / Edge / Brave, które działa podobnie jak autouzupełni
 
 ### 2.3. Rozszerzenie
 
-1. Pobierz to repozytorium (*Code → Download ZIP*) i rozpakuj, np. do `C:\Narzedzia\ddg-alias-keepassxc`. **Nie przenoś później tego folderu.**
+1. **[⬇️ Pobierz ZIP](https://github.com/Kacperpe/ddg-alias-keepassxc/archive/refs/heads/main.zip)** i rozpakuj, np. do `C:\Narzedzia\ddg-alias-keepassxc` (w środku będzie folder `ddg-alias-keepassxc-main`). **Nie przenoś później tego folderu.**
 2. Otwórz `chrome://extensions` (w Edge: `edge://extensions`).
 3. Włącz **Tryb dewelopera** (przełącznik w rogu).
 4. Kliknij **Załaduj rozpakowane** i wskaż folder **`extension`** z repozytorium.
