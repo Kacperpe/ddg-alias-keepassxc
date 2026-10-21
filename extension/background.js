@@ -1,16 +1,29 @@
 importScripts('nacl-fast.min.js', 'kpxc.js');
 
-const API = 'https://quack.duckduckgo.com/api/email/addresses';
+const QUACK = 'https://quack.duckduckgo.com/api';
 const NATIVE_HOST = 'com.kacperpe.ddg_alias';
 
 // ---------- DuckDuckGo ----------
-async function generateAlias(site) {
-  const { ddgToken } = await chrome.storage.local.get('ddgToken');
-  if (!ddgToken) throw new Error('Brak tokenu DDG – ustaw go w opcjach rozszerzenia.');
+// token DDG to same litery i cyfry – usuwamy "Bearer", spacje, cudzysłowy, niewidoczne znaki itp.
+const cleanToken = t => (t || '').replace(/^\s*Bearer\s+/i, '').replace(/[^A-Za-z0-9]/g, '');
+const cleanUser = u => (u || '').trim().toLowerCase().replace(/@duck\.com$/, '').replace(/[^a-z0-9._-]/g, '');
 
-  const res = await fetch(API, { method: 'POST', headers: { Authorization: 'Bearer ' + ddgToken } });
-  if (res.status === 401) throw new Error('Token DDG nieprawidłowy lub wygasł.');
-  if (!res.ok) throw new Error('Błąd DDG API: ' + res.status);
+class NeedsSetup extends Error {}
+
+async function generateAlias(site) {
+  const ddgToken = cleanToken((await chrome.storage.local.get('ddgToken')).ddgToken);
+  if (!ddgToken) throw new NeedsSetup('Najpierw zaloguj się do DuckDuckGo – otworzyłem ustawienia rozszerzenia.');
+
+  let res;
+  try {
+    res = await fetch(QUACK + '/email/addresses', { method: 'POST', headers: { Authorization: 'Bearer ' + ddgToken } });
+  } catch (e) {
+    throw new Error('Brak połączenia z DuckDuckGo – sprawdź internet.');
+  }
+  if (res.status === 401 || res.status === 403) {
+    throw new NeedsSetup('Sesja DuckDuckGo wygasła – zaloguj się ponownie (otworzyłem ustawienia).');
+  }
+  if (!res.ok) throw new Error('DuckDuckGo nie wygenerował adresu (błąd ' + res.status + '). Spróbuj za chwilę.');
 
   const { address } = await res.json();
   const alias = address + '@duck.com';
@@ -21,6 +34,39 @@ async function generateAlias(site) {
   return alias;
 }
 
+// Logowanie jak w aplikacji DuckDuckGo: adres Duck → kod (kilka słów) na maila → token
+async function ddgSendCode(user) {
+  const u = cleanUser(user);
+  if (!u) throw new Error('Wpisz swój adres Duck, np. kacper@duck.com');
+  let r;
+  try { r = await fetch(QUACK + '/auth/loginlink?user=' + encodeURIComponent(u)); }
+  catch (e) { throw new Error('Brak połączenia z DuckDuckGo – sprawdź internet.'); }
+  if (!r.ok) {
+    throw new Error(r.status === 400 || r.status === 404
+      ? 'Nie znaleziono takiego adresu Duck. Sprawdź pisownię.'
+      : 'DuckDuckGo nie wysłał kodu (błąd ' + r.status + '). Spróbuj za minutę.');
+  }
+  await chrome.storage.local.set({ ddgUser: u });
+  return { user: u };
+}
+
+async function ddgLogin(user, code) {
+  const u = cleanUser(user);
+  const otp = (code || '').trim().toLowerCase().replace(/[^a-ząćęłńóśźż ]/g, ' ').replace(/\s+/g, ' ').trim();
+  if (!otp) throw new Error('Wpisz kod z maila od DuckDuckGo.');
+  const r = await fetch(QUACK + '/auth/login?user=' + encodeURIComponent(u) + '&otp=' + encodeURIComponent(otp));
+  if (!r.ok) throw new Error('Kod nie pasuje albo wygasł. Wyślij nowy kod i spróbuj ponownie.');
+  const j = await r.json();
+  if (!j.token) throw new Error('Kod nie pasuje albo wygasł. Wyślij nowy kod i spróbuj ponownie.');
+  const d = await fetch(QUACK + '/email/dashboard', { headers: { Authorization: 'Bearer ' + j.token } });
+  if (!d.ok) throw new Error('Nie udało się pobrać danych konta DuckDuckGo (błąd ' + d.status + ').');
+  const dj = await d.json();
+  const token = cleanToken(dj.user && dj.user.access_token);
+  if (!token) throw new Error('DuckDuckGo nie zwrócił tokenu. Spróbuj ponownie.');
+  await chrome.storage.local.set({ ddgToken: token, ddgUser: u });
+  return { user: u };
+}
+
 // ---------- KeePassXC ----------
 function nativeTransport() {
   const port = chrome.runtime.connectNative(NATIVE_HOST);
@@ -28,7 +74,9 @@ function nativeTransport() {
   port.onMessage.addListener(m => onMsg(m));
   port.onDisconnect.addListener(() => {
     const e = chrome.runtime.lastError && chrome.runtime.lastError.message;
-    onDisc(e && /not found|not allowed|forbidden/i.test(e)
+    const noBridge = !!(e && /not found|not allowed|forbidden/i.test(e));
+    if (noBridge) chrome.storage.local.set({ kpxcBridge: false });
+    onDisc(noBridge
       ? 'Brak mostka do KeePassXC – uruchom install.bat (instrukcja w README).'
       : (e || 'Rozłączono z KeePassXC'));
   });
@@ -43,6 +91,7 @@ function nativeTransport() {
 async function openSession() {
   const s = new KpxcSession(nativeTransport());
   await s.handshake();
+  chrome.storage.local.set({ kpxcBridge: true });
   return s;
 }
 
@@ -92,11 +141,16 @@ const handlers = {
     const site = msg.site || (sender.tab && sender.tab.url ? new URL(sender.tab.url).hostname : '');
     return generateAlias(site).then(alias => ({ alias }));
   },
+  ddgSendCode: msg => ddgSendCode(msg.user),
+  ddgLogin: msg => ddgLogin(msg.user, msg.code),
+  ddgLogout: () => chrome.storage.local.remove('ddgToken').then(() => ({})),
   kpxcStatus: () => kpxc.status(),
   kpxcAssociate: () => kpxc.associate(),
   saveLogin: async msg => {
-    const { kpxcAutoSave = true } = await chrome.storage.local.get('kpxcAutoSave');
+    const { kpxcAutoSave = true, kpxcBridge } = await chrome.storage.local.get(['kpxcAutoSave', 'kpxcBridge']);
     if (!kpxcAutoSave && !msg.manual) return { skipped: true };
+    // tryb prosty (bez install.bat): zapis robi KeePassXC-Browser, więc nie przeszkadzamy
+    if (kpxcBridge === false && !msg.manual) return { skipped: true };
     return kpxc.save(msg);
   }
 };
@@ -107,12 +161,16 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   Promise.resolve()
     .then(() => h(msg, sender))
     .then(r => sendResponse(Object.assign({ ok: true }, r)))
-    .catch(e => sendResponse({ ok: false, error: e.message }));
+    .catch(e => {
+      if (e instanceof NeedsSetup) chrome.runtime.openOptionsPage();
+      sendResponse({ ok: false, error: e.message });
+    });
   return true;
 });
 
-// ---------- menu kontekstowe ----------
-chrome.runtime.onInstalled.addListener(() => {
+// ---------- menu kontekstowe + kreator po instalacji ----------
+chrome.runtime.onInstalled.addListener(details => {
+  if (details.reason === 'install') chrome.runtime.openOptionsPage();
   chrome.contextMenus.create({
     id: 'ddg-fill',
     title: 'Wstaw alias DuckDuckGo / silne hasło',

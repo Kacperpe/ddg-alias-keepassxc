@@ -2,52 +2,155 @@
 <html lang="pl">
 <head>
 <meta charset="utf-8">
-<title>DDG Alias – opcje</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DDG Alias + KeePassXC – ustawienia</title>
 <style>
-  body { font: 14px system-ui, sans-serif; max-width: 640px; margin: 24px auto; padding: 0 16px; }
-  input[type=password], input[type=text] { width: 100%; padding: 8px; box-sizing: border-box; font-family: monospace; }
-  input[type=number] { width: 80px; padding: 4px; }
-  label { display: block; margin: 8px 0; }
-  button { margin-top: 8px; padding: 6px 14px; cursor: pointer; }
-  #status, #status2 { margin-left: 8px; }
-  table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 13px; }
-  td, th { border-bottom: 1px solid #ddd; padding: 4px; text-align: left; }
-  ol li { margin-bottom: 4px; }
+  :root {
+    --bg: #f4f5f7; --card: #fff; --text: #1c1c1c; --muted: #6b6b6b; --line: #e6e6e6;
+    --accent: #de5833; --accent-h: #c74a28; --ok: #1f8a4c; --err: #c62828; --warn: #b26a00;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #18181a; --card: #232326; --text: #eee; --muted: #a8a8a8; --line: #36363a; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 680px; margin: 0 auto; padding: 32px 16px 64px; }
+  h1 { font-size: 24px; margin: 0 0 4px; }
+  .lead { color: var(--muted); margin: 0 0 24px; }
+  .card { background: var(--card); border-radius: 14px; padding: 22px 24px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+  .head { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+  .num { flex: 0 0 30px; height: 30px; border-radius: 50%; background: var(--line); color: var(--text); display: grid; place-items: center; font-weight: 700; }
+  .card.done .num { background: var(--ok); color: #fff; }
+  .card.done .num::after { content: "✓"; }
+  .card.done .num span { display: none; }
+  h2 { font-size: 18px; margin: 0; }
+  .status { margin: 4px 0 14px; font-size: 14px; }
+  .status.ok { color: var(--ok); } .status.err { color: var(--err); } .status.warn { color: var(--warn); }
+  label.f { display: block; font-size: 13px; color: var(--muted); margin: 12px 0 6px; }
+  input[type=text], input[type=email], input[type=password], input[type=number] {
+    width: 100%; padding: 11px 12px; font: inherit; color: var(--text); background: var(--bg);
+    border: 1px solid var(--line); border-radius: 9px;
+  }
+  input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .row input { flex: 1 1 220px; }
+  button {
+    font: 600 14px system-ui, sans-serif; padding: 11px 18px; border-radius: 9px; border: 0; cursor: pointer;
+    background: var(--accent); color: #fff;
+  }
+  button:hover { background: var(--accent-h); }
+  button.sec { background: transparent; color: var(--text); border: 1px solid var(--line); }
+  button.sec:hover { background: var(--bg); }
+  button:disabled { opacity: .55; cursor: default; }
+  .hint { font-size: 13px; color: var(--muted); margin-top: 8px; }
+  .hidden { display: none !important; }
+  ol.steps { padding-left: 20px; margin: 8px 0 0; } ol.steps li { margin-bottom: 6px; }
+  code { background: var(--bg); padding: 1px 6px; border-radius: 5px; font-size: 13px; }
+  details { margin-top: 14px; font-size: 14px; } summary { cursor: pointer; color: var(--muted); }
+  .check { display: flex; gap: 10px; align-items: flex-start; margin: 10px 0; cursor: pointer; }
+  .check input { margin-top: 4px; width: 16px; height: 16px; accent-color: var(--accent); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
+  td, th { border-bottom: 1px solid var(--line); padding: 6px 4px; text-align: left; }
+  .saved { color: var(--ok); font-size: 13px; margin-left: 8px; }
 </style>
 </head>
 <body>
-  <h2>DDG Alias + KeePassXC</h2>
+<main>
+  <h1>DDG Alias + KeePassXC</h1>
+  <p class="lead">Dwa kroki i gotowe. Potem w każdym formularzu rejestracji jednym kliknięciem dostaniesz prywatny adres @duck.com i silne hasło, zapisane od razu w KeePassXC.</p>
 
-  <h3>Token DuckDuckGo</h3>
-  <ol>
-    <li>Wejdź na <b>duckduckgo.com/email</b> i zaloguj się.</li>
-    <li>Otwórz DevTools (F12) → zakładka <b>Network</b>.</li>
-    <li>Kliknij „Generate Private Duck Address”.</li>
-    <li>Znajdź żądanie <code>addresses</code> i skopiuj wartość nagłówka <code>Authorization</code> bez słowa „Bearer”.</li>
-  </ol>
-  <input id="token" type="password" placeholder="wklej token">
-  <button id="save">Zapisz</button>
-  <button id="test">Testuj (wygeneruje alias)</button>
-  <span id="status"></span>
+  <!-- KROK 1: DuckDuckGo -->
+  <section class="card" id="cardDdg">
+    <div class="head"><div class="num"><span>1</span></div><h2>Zaloguj się do DuckDuckGo</h2></div>
+    <div class="status" id="ddgStatus"></div>
 
-  <h3>KeePassXC</h3>
-  <p id="kpStatus">Sprawdzam połączenie…</p>
-  <button id="kpConnect">Połącz z KeePassXC</button>
-  <button id="kpCheck">Sprawdź połączenie</button>
-  <label><input type="checkbox" id="kpxcAutoSave"> Automatycznie zapisuj wygenerowany login i hasło w KeePassXC po wysłaniu formularza</label>
-  <label>Grupa w bazie (puste = „KeePassXC-Browser Passwords”): <input type="text" id="kpxcGroup" placeholder="np. Internet/Konta" style="width:260px;font-family:inherit"></label>
-  <p style="font-size:12px;color:#666">Wymaga jednorazowego uruchomienia <code>windows\install.bat</code> z repozytorium. Przy „Połącz” KeePassXC poprosi o nazwę połączenia – wpisz dowolną i kliknij <b>Zapisz i zezwól</b>.</p>
+    <div id="ddgLoggedIn" class="hidden">
+      <button class="sec" id="ddgTest">Wygeneruj testowy adres</button>
+      <button class="sec" id="ddgLogout">Wyloguj</button>
+    </div>
 
-  <h3>Zachowanie</h3>
-  <label><input type="checkbox" id="showOnFocus"> Na formularzach rejestracji otwieraj menu od razu po kliknięciu w pole (jak DuckDuckGo). Ikona w polu jest widoczna zawsze.</label>
-  <label>Długość generowanego hasła: <input type="number" id="pwLength" min="8" max="128"></label>
-  <label><input type="checkbox" id="pwSymbols"> Znaki specjalne w haśle (!@#$…)</label>
-  <button id="saveSettings">Zapisz ustawienia</button><span id="status2"></span>
+    <div id="ddgLoginForm">
+      <label class="f" for="ddgUser">Twój adres Duck</label>
+      <div class="row">
+        <input type="text" id="ddgUser" placeholder="np. kacper@duck.com" autocomplete="off" spellcheck="false">
+        <button id="ddgSend">Wyślij kod</button>
+      </div>
+      <div id="ddgCodeBox" class="hidden">
+        <label class="f" for="ddgCode">Kod z maila od DuckDuckGo (kilka słów, np. <i>apple banana cherry date</i>)</label>
+        <div class="row">
+          <input type="text" id="ddgCode" placeholder="wpisz lub wklej słowa z maila" autocomplete="off" spellcheck="false">
+          <button id="ddgLogin">Zaloguj</button>
+        </div>
+        <div class="hint">Mail przychodzi na skrzynkę, na którą DuckDuckGo przekierowuje Twoje maile. Sprawdź też spam.</div>
+      </div>
+      <div class="hint">Nie masz adresu Duck? Załóż go za darmo na <b>duckduckgo.com/email</b>.</div>
+    </div>
 
-  <h3>Historia aliasów</h3>
-  <button id="export">Eksport CSV</button>
-  <table><thead><tr><th>Alias</th><th>Strona</th><th>Data</th></tr></thead><tbody id="hist"></tbody></table>
+    <details>
+      <summary>Zaawansowane: wklej token ręcznie</summary>
+      <div class="row" style="margin-top:10px">
+        <input type="password" id="token" placeholder="token z nagłówka Authorization">
+        <button class="sec" id="saveToken">Zapisz token</button>
+      </div>
+    </details>
+  </section>
 
-  <script src="options.js"></script>
+  <!-- KROK 2: KeePassXC -->
+  <section class="card" id="cardKp">
+    <div class="head"><div class="num"><span>2</span></div><h2>Połącz z KeePassXC</h2></div>
+    <div class="status" id="kpStatus">Sprawdzam…</div>
+
+    <div id="kpNoBridge" class="hidden">
+      <ol class="steps">
+        <li>Zainstaluj oficjalne rozszerzenie <b>KeePassXC-Browser</b>:
+          <a href="https://chromewebstore.google.com/detail/keepassxc-browser/oboonakemofpalcgghocfoadofidjkkk" target="_blank">Chrome</a> ·
+          <a href="https://microsoftedge.microsoft.com/addons/detail/keepassxcbrowser/pdffhmdngciaglkoonimfcmckehcpafo" target="_blank">Edge</a></li>
+        <li>W KeePassXC: <b>Narzędzia → Ustawienia → Integracja z przeglądarką</b> → zaznacz <b>Włącz integrację</b> i swoją przeglądarkę.</li>
+        <li>Kliknij ikonę KeePassXC-Browser → <b>Połącz</b> i zatwierdź w KeePassXC.</li>
+      </ol>
+      <p class="hint">Gotowe – po rejestracji KeePassXC-Browser zapyta o zapis, kliknij <b>Nowy</b>. Ten sam KeePassXC-Browser wypełnia potem loginy.</p>
+      <details>
+        <summary>Opcjonalnie: zapis całkiem bez klikania „Nowy”</summary>
+        <ol class="steps">
+          <li>W pobranym folderze otwórz <code>windows</code> i kliknij dwa razy <b>install.bat</b> (jednorazowo).</li>
+          <li>Zamknij wszystkie okna przeglądarki i otwórz ją ponownie, potem wróć tutaj.</li>
+        </ol>
+      </details>
+    </div>
+    <div id="kpNotRunning" class="hidden">
+      <ol class="steps">
+        <li>Uruchom <b>KeePassXC</b> i odblokuj swoją bazę haseł.</li>
+        <li>W KeePassXC: <b>Narzędzia → Ustawienia → Integracja z przeglądarką</b> → zaznacz <b>Włącz integrację z przeglądarką</b> → OK.</li>
+      </ol>
+    </div>
+    <div id="kpNeedAssoc" class="hidden">
+      <button id="kpConnect">Połącz z KeePassXC</button>
+      <div class="hint">KeePassXC pokaże okienko – wpisz dowolną nazwę (np. <i>laptop</i>) i kliknij <b>Zapisz i zezwól</b>.</div>
+    </div>
+    <div class="row" style="margin-top:12px">
+      <button class="sec" id="kpCheck">Sprawdź ponownie</button>
+    </div>
+  </section>
+
+  <!-- USTAWIENIA -->
+  <section class="card">
+    <div class="head"><h2>Ustawienia</h2><span class="saved hidden" id="savedMark">Zapisano ✓</span></div>
+    <label class="check"><input type="checkbox" id="kpxcAutoSave"><span>Automatycznie zapisuj nowe konto (login, hasło, strona) w KeePassXC po wysłaniu formularza</span></label>
+    <label class="check"><input type="checkbox" id="showOnFocus"><span>Na stronach rejestracji pokazuj menu od razu po kliknięciu w pole</span></label>
+    <label class="check"><input type="checkbox" id="pwSymbols"><span>Znaki specjalne w haśle (!@#$…)</span></label>
+    <label class="f" for="pwLength">Długość hasła</label>
+    <input type="number" id="pwLength" min="8" max="128" style="max-width:120px">
+    <label class="f" for="kpxcGroup">Grupa w KeePassXC (puste = „KeePassXC-Browser Passwords”)</label>
+    <input type="text" id="kpxcGroup" placeholder="np. Internet/Konta">
+  </section>
+
+  <!-- HISTORIA -->
+  <section class="card">
+    <div class="head"><h2>Wygenerowane adresy</h2></div>
+    <button class="sec" id="export">Pobierz jako CSV</button>
+    <table><thead><tr><th>Adres</th><th>Strona</th><th>Data</th></tr></thead><tbody id="hist"></tbody></table>
+  </section>
+</main>
+<script src="options.js"></script>
 </body>
 </html>

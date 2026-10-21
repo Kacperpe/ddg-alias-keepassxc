@@ -277,7 +277,7 @@
     }
     const sep = document.createElement('div'); sep.className = 'sep'; menu.appendChild(sep);
     const foot = document.createElement('div'); foot.className = 'foot';
-    foot.textContent = 'Po wysłaniu formularza login i hasło zapiszą się w KeePassXC.';
+    foot.textContent = 'Po wysłaniu formularza konto trafi do KeePassXC.';
     menu.appendChild(foot);
 
     menu.style.display = 'block';
@@ -379,6 +379,9 @@
     if (res && res.ok && res.saved) {
       p.saved = true;
       showToast('Zapisano w KeePassXC ✔', login);
+    } else if (res && !res.ok && /mostka/i.test(res.error || '')) {
+      // tryb prosty – zapis przejmuje KeePassXC-Browser
+      if (manual) showToast('Kliknij „Nowy” w okienku KeePassXC-Browser, żeby zapisać konto.');
     } else if (!(res && res.ok && res.skipped)) {
       showToast('Nie zapisano w KeePassXC: ' + (res ? res.error : 'brak odpowiedzi'), null, password, true);
     }
@@ -395,9 +398,17 @@
       const hint = document.createElement('div');
       hint.style.cssText = 'color:#bbb;font-size:12px;margin-top:4px';
       hint.textContent = 'Login, hasło i adres strony zapiszą się w KeePassXC automatycznie po wysłaniu formularza.';
+      chrome.storage.local.get('kpxcBridge').then(s => {
+        if (s.kpxcBridge === false) {
+          hint.textContent = 'Po wysłaniu formularza kliknij „Nowy” w okienku KeePassXC-Browser, żeby zapisać konto.';
+          const b = toast.querySelector('.save-now');
+          if (b) b.remove();
+        }
+      });
       toast.appendChild(hint);
       if (offerSave) {
         const save = document.createElement('button');
+        save.className = 'save-now';
         save.textContent = 'Zapisz teraz';
         save.onclick = () => { save.textContent = 'Zapisuję…'; trySave(true); };
         toast.appendChild(save);
